@@ -46,6 +46,7 @@ bluetooth.onUartDataReceived(serial.delimiters(Delimiters.Dollar), function() {
             control.inBackground(() => { music.playTone(Note.E3, 100); music.playTone(Note.C3, 100) })
             console.log(cmd)
             drawTurtle(JSON.parse(cmd.slice(1, -1)))
+            readMode = false
         }
     } else if (data[0] == "%") {
         bluetooth.uartWriteString("%rsta")
