@@ -19,6 +19,7 @@ function drawTurtle(cmds: number[][]) {
             vanGogh.penUp()
         }
     }
+    vanGogh.penUp()
     bluetooth.uartWriteString("%dend")
 }
 bluetooth.startMagnetometerService()
