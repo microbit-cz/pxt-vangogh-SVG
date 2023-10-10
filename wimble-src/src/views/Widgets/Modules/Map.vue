@@ -6,6 +6,16 @@ import { reactive, ref } from 'vue'
 
 function showPathPrompt() {
     let newSVG = prompt("Zadejte nový Path")
+    if (!newSVG) return
+    if (newSVG?.startsWith("<svg")) {
+        //get path from svg
+        let parser = new DOMParser()
+        let doc = parser.parseFromString(newSVG, "image/svg+xml")
+        let path = doc.querySelector("path")
+        if (path) {
+            newSVG = path.getAttribute("d")
+        }
+    }
     lines = []
     angles = []
     if (newSVG) input = main(newSVG)
@@ -180,7 +190,7 @@ const { service } = defineProps(['service'])
 }
     .canvas {
         overflow: hidden;
-        width: 60vw;
+        width: 50vw;
         height: 60vh;
         position: relative;
         background: #fff;
