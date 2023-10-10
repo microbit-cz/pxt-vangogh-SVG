@@ -6,11 +6,13 @@ import Magnetometer from './Widgets/Services/Magnetometer.vue';
 import UART from './Widgets/Services/UART.vue';
 import Map from './Widgets/Modules/Map.vue';
 import { useStore } from '../stores/main'
-import { reactive } from 'vue'
 import { getServices } from 'microbit-web-bluetooth'
+import router from '../router';
 
 const connection = useStore().connection
 console.log(connection);
+
+document.onkeydown = (e) => { if(e.code == "Escape") router.push("/") }
 
 async function tryServices (i=1) {
     console.log('conn retry ' + i);
@@ -64,7 +66,6 @@ console.log(magnetometerService);
 <style lang="scss">
 
 .widgetlist {
-    width: 100%;
     margin: 2rem;
     display: flex;
     flex-direction: row;
