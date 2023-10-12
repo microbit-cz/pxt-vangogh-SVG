@@ -328,7 +328,6 @@ export function main(path) {
         else if (command.name == "Z" || command.name == "z") {
             // Get back to 0,0
             var relArgs = [0, 0];
-            pen.coords = [args[0], args[1]];
             draw(pen, relArgs, true, output);
         }
         else if (command.name == "l") {

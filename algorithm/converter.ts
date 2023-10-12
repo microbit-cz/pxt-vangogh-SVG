@@ -381,7 +381,6 @@ export function main(path:string) : any[] {
 
             // Get back to 0,0
             const relArgs = [0, 0]
-            pen.coords = [args[0], args[1]]
 
             draw(pen, relArgs, true, output)
 
