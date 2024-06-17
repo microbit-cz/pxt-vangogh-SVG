@@ -394,7 +394,7 @@ function main(path) {
                         break;
                     case "s":
                         reflection = prevControlPoint ? [2 * pen.coords[0] - prevControlPoint[0], 2 * pen.coords[1] - prevControlPoint[1]] : [pen.coords[0], pen.coords[1]];
-                        curve = smoothCubicBezier(pen.coords, reflection, [pen.coords[0] + args[0], pen.coords[1] + args[1]], [pen.coords[0] + args[2], pen.coords[1] + args[3]]);
+                        curve = cubicBezier(pen.coords, reflection, [pen.coords[0] + args[0], pen.coords[1] + args[1]], [pen.coords[0] + args[2], pen.coords[1] + args[3]]);
                         prevControlPoint = [pen.coords[0] + args[0], pen.coords[1] + args[1]];
                         break;
                     case "T":
