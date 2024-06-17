@@ -143,18 +143,15 @@ function quadBezier(P0, P1, P2) {
  * @returns
  */
 function ellipticalArc(rx, ry, xAxisRotation, largeArcFlag, sweepFlag, x, y, currentX, currentY) { //přepsat
-    // Convert rotation angle from degrees to radians
     let phi = xAxisRotation * (Math.PI / 180);
     let sinPhi = Math.sin(phi);
     let cosPhi = Math.cos(phi);
  
-    // Calculate the transformed coordinates
     let dx2 = (currentX - x) / 2;
     let dy2 = (currentY - y) / 2;
     let x1p = cosPhi * dx2 + sinPhi * dy2;
     let y1p = -sinPhi * dx2 + cosPhi * dy2;
  
-    // Ensure radii are large enough
     rx = Math.abs(rx);
     ry = Math.abs(ry);
     let lambda = (x1p * x1p) / (rx * rx) + (y1p * y1p) / (ry * ry);
@@ -163,7 +160,6 @@ function ellipticalArc(rx, ry, xAxisRotation, largeArcFlag, sweepFlag, x, y, cur
         ry *= Math.sqrt(lambda);
     }
  
-    // Calculate (cx', cy')
     let rx2 = rx * rx;
     let ry2 = ry * ry;
     let x1p2 = x1p * x1p;
@@ -174,12 +170,8 @@ function ellipticalArc(rx, ry, xAxisRotation, largeArcFlag, sweepFlag, x, y, cur
  
     let cxp = factor * (rx * y1p) / ry;
     let cyp = factor * -(ry * x1p) / rx;
- 
-    // Calculate (cx, cy) from (cx', cy')
     let cx = cosPhi * cxp - sinPhi * cyp + (currentX + x) / 2;
     let cy = sinPhi * cxp + cosPhi * cyp + (currentY + y) / 2;
- 
-    // Calculate the start and end angles
     let startAngle = Math.atan2((y1p - cyp) / ry, (x1p - cxp) / rx);
     let endAngle = Math.atan2((-y1p - cyp) / ry, (-x1p - cxp) / rx);
  
@@ -188,8 +180,6 @@ function ellipticalArc(rx, ry, xAxisRotation, largeArcFlag, sweepFlag, x, y, cur
     } else if (sweepFlag === 1 && endAngle < startAngle) {
         endAngle += 2 * Math.PI;
     }
- 
-    // Calculate points along the arc
     let res = [];
     let deltaAngle = endAngle - startAngle;
     for (let i = 0; i < accuracy + Math.round(accuracy/10); i++) {
