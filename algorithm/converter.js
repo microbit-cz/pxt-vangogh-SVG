@@ -166,7 +166,10 @@ function ellipticalArc(rx, ry, xAxisRotation, largeArcFlag, sweepFlag, x, y, cur
     let y1p2 = y1p * y1p;
  
     let factor = Math.sqrt(((rx2 * ry2) - (rx2 * y1p2) - (ry2 * x1p2)) / ((rx2 * y1p2) + (ry2 * x1p2)));
-    if (largeArcFlag === sweepFlag) factor = -factor;
+
+    if (largeArcFlag === sweepFlag) {
+        factor = -factor;
+    }
  
     let cxp = factor * (rx * y1p) / ry;
     let cyp = factor * -(ry * x1p) / rx;
@@ -252,66 +255,60 @@ function main(path) {
 
     var prevControlPoint = null;
     // Breaks the path to signle letters and iterates throught them
+
+
     for (var _i = 0, path_1 = path; _i < path_1.length; _i++) {
         var letter = path_1[_i];
-        
-        // If the letter is a SVG command key, write previous args and the command (if exists) to output array, and reset current command
-        if (isValid(letter, valid)) {
 
-            if (currentArg)
-                currentCommand.args.push(prevSign ? parseFloat(currentArg * scale) : -parseFloat(currentArg * scale));
-
-            currentArg = "";
-            prevSign = true;
-
-            if (currentCommand.name) {
-                switch (currentCommand.name) {
-                    case "E":
-                        scale = currentCommand.args[0];
-                        break;
-                    case "G":
-                        angle = currentCommand.args[0];
-                        break;
-                    default:
-                        commands.push(currentCommand);
-                        break;
+        switch (true) {
+            case isValid(letter, valid): case (letter === " "): case (letter === ","): case (letter === "-"):
+                if (currentArg) {
+                    currentCommand.args.push(prevSign ? parseFloat(currentArg * scale) : -parseFloat(currentArg * scale));
                 }
-            }  
-            // Initiate new command
-            currentCommand = { name: letter, args: [] };
-            // If the letter is a space, write previous argument to the current command instance and reset current argument
-        }
-        else if (letter == " " || letter == ",") {
-            if (currentArg)
-                currentCommand.args.push(prevSign ? parseFloat(currentArg * scale) : -parseFloat(currentArg * scale));
-            // Checks for reperating command arguments - more than default arg length means more commands consecutively
-            if (currentCommand.args.length >= valid[currentCommand.name]) {
-                commands.push(currentCommand); // valid commands
-            }
-            prevSign = true;
-            currentArg = "";
-            // Same as previous but with negative values
-        }
-        else if (letter == "-") {
-            if (currentArg)
-                currentCommand.args.push(prevSign ? parseFloat(currentArg * scale) : -parseFloat(currentArg * scale));
-            if (currentCommand.args.length >= valid[currentCommand.name]) {
-                commands.push(currentCommand);
-                currentCommand = { name: currentCommand.name, args: [] };
-            }
-            prevSign = false;
-            currentArg = "";
-            // If it is a number, dot, or anything else, write it to the current argument and to be parsed to number
-        }
-        else {
-            currentArg += letter;
+
+                switch (true) {
+                    case isValid(letter, valid):
+                        if (currentCommand.name) {
+                            switch (currentCommand.name) {
+                                case "E":
+                                    scale = currentCommand.args[0];
+                                    break;
+                                case "G":
+                                    angle = currentCommand.args[0];
+                                    break;
+                                default:
+                                    commands.push(currentCommand);
+                                    break;
+                            }
+                        }  
+
+                        currentCommand = { name: letter, args: [] };
+                    case (letter === " "): case (letter === ","): case (letter === "-"):
+                        if (currentCommand.args.length >= valid[currentCommand.name]) {
+                            commands.push(currentCommand); 
+                            if (letter === "-") {
+                                currentCommand = { name: currentCommand.name, args: [] };
+                            }
+                        }
+                }
+
+                prevSign = true;
+                currentArg = "";
+                break;
+            default:
+                currentArg += letter;
+                break;
         }
     }
     //Saves the last argument and command when all the letters are parsed
-    if (currentArg)
+    if (currentArg) {
         currentCommand.args.push(prevSign ? parseFloat(currentArg * scale) : -parseFloat(currentArg * scale));
-    if (currentCommand.name)
+    } 
+        
+    if (currentCommand.name) {
         commands.push(currentCommand); //pro Z
+    }
+    commands = [...new Set(commands)]
     //Initializes output array
     var output = [];
     //Initializes the pen for storing current info
@@ -321,10 +318,7 @@ function main(path) {
         down: false
     };
     
-    console.log(commands)
-    //Iterates throught every command
     commands.forEach(function (command) {
-        // For shortening the code :D
         var args = command.args;
         var relArgs;
         var isHorizontal;
@@ -388,6 +382,7 @@ function main(path) {
                         prevControlPoint = [pen.coords[0] + args[0], pen.coords[1] + args[1]];
                         break;
                     case "T":
+                        console.log("kys")
                         reflection = prevControlPoint ? [2 * pen.coords[0] - prevControlPoint[0], 2 * pen.coords[1] - prevControlPoint[1]] : pen.coords;
                         curve = quadBezier(pen.coords, reflection, [args[0], args[1]]);
                         prevControlPoint = reflection;
@@ -415,4 +410,4 @@ function main(path) {
     return formatted(output, angle);
 }
 
-console.log(main("svg path"))
+console.log(main("M 10 100 Q 25 10 116 18 T 208 207 t 320 100 T 390 100"))
