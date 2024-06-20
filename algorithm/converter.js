@@ -22,8 +22,6 @@
 // - C,c - cubic bezier curve (base 4)           - place down the pen, split the curve and create lines     - parameters P0,P1,P2,P3 (x,y) (abs/rel)
 // - Q,q - quadratic bezier curve (base 3)           - place down the pen, split the curve and create lines     - parameters P0,P1,P2 (x,y) (abs/rel)
  
-const { format } = require("path/posix");
- 
 /**
  * Calculates the length of hypotenuse and one angle of a triangle.
  * @param a The length of the triangle's first side.
@@ -81,18 +79,18 @@ function draw(pen, coords, draw, output) {
         output.push([5, 0]);
         pen.down = false;
     }
-    var triangle = calcRightTriangle(coords[0], coords[1]);
+    let triangle = calcRightTriangle(coords[0], coords[1]);
     //When c = 0, deg becomes = 0° and changes the bearing
     if (triangle.c == 0)
         return;
-    var deltaAngle = triangle.deg - pen.bearing;
+    let deltaAngle = triangle.deg - pen.bearing;
     deltaWrite(deltaAngle, output);
     if (triangle.c > 0)
         output.push([1, triangle.c]);
     pen.bearing = triangle.deg;
 }
 // How many points will generate on each curve. More points = more accurate final path, but more diffucult for turtle and bigger output. Default: 6
-var accuracy = 5;
+let accuracy = 8;
 /**
  * Calculates the cubic bezier curve a converts it to a list of connected points
  * @param P0 First control point (the curve starts here)
@@ -102,10 +100,10 @@ var accuracy = 5;
  * @returns List of coordinates
  */
 function cubicBezier(P0, P1, P2, P3) {
-    var res = [];
-    for (var t = (1 / accuracy); t <= 1; t += (1 / accuracy)) {
-        var bezout = [];
-        for (var i = 0; i < P0.length; i++) {
+    let res = [];
+    for (let t = (1 / accuracy); t <= 1; t += (1 / accuracy)) {
+        let bezout = [];
+        for (let i = 0; i < P0.length; i++) {
             bezout[i] = Math.round(((1 - t) * (1 - t) * (1 - t) * P0[i] + 3 * (1 - t) * (1 - t) * t * P1[i] + 3 * (1 - t) * t * t * P2[i] + t * t * t * P3[i]) * 1000) / 1000;
         }
         res.push(bezout);
@@ -121,10 +119,10 @@ function cubicBezier(P0, P1, P2, P3) {
  * @returns List of coordinates
  */
 function quadBezier(P0, P1, P2) {
-    var res = [];
-    for (var t = (1 / accuracy); t <= 1; t += (1 / accuracy)) {
-        var bezout = [];
-        for (var i = 0; i < P0.length; i++) {
+    let res = [];
+    for (let t = (1 / accuracy); t <= 1; t += (1 / accuracy)) {
+        let bezout = [];
+        for (let i = 0; i < P0.length; i++) {
             bezout[i] = Math.round(((P0[i] - 2 * P1[i] + P2[i]) * t * t + (2 * P1[i] - 2 * P0[i]) * t + P0[i]) * 1000) / 1000;
         }
         res.push(bezout);
@@ -142,62 +140,84 @@ function quadBezier(P0, P1, P2) {
  * @param y
  * @returns
  */
-function ellipticalArc(rx, ry, xAxisRotation, largeArcFlag, sweepFlag, x, y, currentX, currentY) { //přepsat
+ function ellipticalArc(rx, ry, xAxisRotation, largeArcFlag, sweepFlag, x, y, currentX, currentY) { 
+    // Convert rotation angle from degrees to radians
     let phi = xAxisRotation * (Math.PI / 180);
     let sinPhi = Math.sin(phi);
     let cosPhi = Math.cos(phi);
  
+    // Calculate the midpoint differences
     let dx2 = (currentX - x) / 2;
     let dy2 = (currentY - y) / 2;
+
+    // Rotate the coordinates to the new coordinate system
     let x1p = cosPhi * dx2 + sinPhi * dy2;
     let y1p = -sinPhi * dx2 + cosPhi * dy2;
  
+    // Ensure radii are positive
     rx = Math.abs(rx);
     ry = Math.abs(ry);
+
+    // Calculate lambda to check if the ellipse needs to be scaled
     let lambda = (x1p * x1p) / (rx * rx) + (y1p * y1p) / (ry * ry);
     if (lambda > 1) {
         rx *= Math.sqrt(lambda);
         ry *= Math.sqrt(lambda);
     }
  
+    // Calculate the squares of radii and coordinates in the rotated system
     let rx2 = rx * rx;
     let ry2 = ry * ry;
     let x1p2 = x1p * x1p;
     let y1p2 = y1p * y1p;
  
+    // Calculate the factor to determine the center point of the ellipse
     let factor = Math.sqrt(((rx2 * ry2) - (rx2 * y1p2) - (ry2 * x1p2)) / ((rx2 * y1p2) + (ry2 * x1p2)));
 
+    // Adjust factor based on the flags
     if (largeArcFlag === sweepFlag) {
         factor = -factor;
     }
  
+    // Calculate the center of the ellipse in the new coordinate system
     let cxp = factor * (rx * y1p) / ry;
     let cyp = factor * -(ry * x1p) / rx;
+
+    // Rotate the center back to the original coordinate system
     let cx = cosPhi * cxp - sinPhi * cyp + (currentX + x) / 2;
     let cy = sinPhi * cxp + cosPhi * cyp + (currentY + y) / 2;
+
+    // Calculate the start and end angles for the arc
     let startAngle = Math.atan2((y1p - cyp) / ry, (x1p - cxp) / rx);
     let endAngle = Math.atan2((-y1p - cyp) / ry, (-x1p - cxp) / rx);
  
+    // Adjust end angle based on the sweep flag
     if (sweepFlag === 0 && endAngle > startAngle) {
         endAngle -= 2 * Math.PI;
     } else if (sweepFlag === 1 && endAngle < startAngle) {
         endAngle += 2 * Math.PI;
     }
+
+    // Generate points along the arc
     let res = [];
     let deltaAngle = endAngle - startAngle;
-    for (let i = 0; i < accuracy + Math.round(accuracy/10); i++) {
+    for (let i = 0; i < accuracy + Math.round(accuracy / 10); i++) {
         let t = i / accuracy;
         let angle = startAngle + t * deltaAngle;
+        
+        // Calculate the x and y coordinates of the point on the arc
         let xPoint = cosPhi * rx * Math.cos(angle) - sinPhi * ry * Math.sin(angle) + cx;
         let yPoint = sinPhi * rx * Math.cos(angle) + cosPhi * ry * Math.sin(angle) + cy;
+        
+        // Add the point to the result array
         res.push([xPoint, yPoint]);
     }
     
-    return res;
+    return res; // Return the array of points representing the arc
 }
  
 function formatted(output, angle) {
-    var textOut = "[\n";
+    let textOut = "[\n";
 
     if (angle !== -1) {
         textOut += "[3, " +  angle.toString() + "],"
@@ -216,7 +236,7 @@ function formatted(output, angle) {
  * @param isAngle;
  */
 function main(path) {
-    var valid = {
+    let valid = { //number of arguments for each command - needs fixing, doesnt work with grouped commands
         M: 2,
         m: 2,
         L: 2,
@@ -242,34 +262,34 @@ function main(path) {
     };
  
     // The final array of parsed Commands
-    var commands = [];
+    let commands = [];
     //Stores info about the current command, adds to final array it when new command key is found
-    var currentCommand = { name: "", args: [] };
+    let currentCommand = { name: "", args: [] };
     //Stores info about current command argument, adds to command when next argument is found
-    var currentArg = "";
+    let currentArg = "";
     //Stores info about previous argument sign (+,-)
-    var prevSign = true;
+    let prevSign = true;
 
-    var angle = -1;
-    var scale = 1;
+    // scale and angle for scaling the image
+    let angle = -1;
+    let scale = 1;
 
-    var prevControlPoint = null;
+    let prevControlPoint = null;
     // Breaks the path to signle letters and iterates throught them
 
-
-    for (var _i = 0, path_1 = path; _i < path_1.length; _i++) {
-        var letter = path_1[_i];
+    for (let _i = 0, path_1 = path; _i < path_1.length; _i++) {
+        let letter = path_1[_i];
 
         switch (true) {
             case isValid(letter, valid): case (letter === " "): case (letter === ","): case (letter === "-"):
-                if (currentArg) {
+                if (currentArg) { //parses current argument
                     currentCommand.args.push(prevSign ? parseFloat(currentArg * scale) : -parseFloat(currentArg * scale));
                 }
 
                 switch (true) {
                     case isValid(letter, valid):
                         if (currentCommand.name) {
-                            switch (currentCommand.name) {
+                            switch (currentCommand.name) { //special commands for scaling and angle
                                 case "E":
                                     scale = currentCommand.args[0];
                                     break;
@@ -283,7 +303,7 @@ function main(path) {
                         }  
 
                         currentCommand = { name: letter, args: [] };
-                    case (letter === " "): case (letter === ","): case (letter === "-"):
+                    case (letter === " "): case (letter === ","): case (letter === "-"): //unwanted characters - we want to ignore them
                         if (currentCommand.args.length >= valid[currentCommand.name]) {
                             commands.push(currentCommand); 
                             if (letter === "-") {
@@ -305,35 +325,37 @@ function main(path) {
         currentCommand.args.push(prevSign ? parseFloat(currentArg * scale) : -parseFloat(currentArg * scale));
     } 
         
-    if (currentCommand.name) {
-        commands.push(currentCommand); //pro Z
+    if (currentCommand.name) { //patch for Z command
+        commands.push(currentCommand); 
     }
+
     commands = [...new Set(commands)]
     //Initializes output array
-    var output = [];
+    let output = [];
     //Initializes the pen for storing current info
-    var pen = {
+    let pen = {
         coords: [0, 0],
         bearing: 0,
         down: false
     };
     
     commands.forEach(function (command) {
-        var args = command.args;
-        var relArgs;
-        var isHorizontal;
-        var isUpperCase;
-        var relArg;
-        var deg;
-        var reflection;
+        let args = command.args;
+        let relArgs;
+        let isHorizontal;
+        let isUpperCase;
+        let relArg;
+        let deg;
+        let reflection;
+        let curve;
 
         switch (command.name) {
-            case "L": case "M": case "l": case "m":
-                relArgs = (command.name === "L" || command.name === "M") ? [args[0] - pen.coords[0], args[1] - pen.coords[1]] : [args[0], args[1]];
+            case "L": case "M": case "l": case "m": //move and line
+                relArgs = (command.name === "L" || command.name === "M") ? [args[0] - pen.coords[0], args[1] - pen.coords[1]] : [args[0], args[1]]; 
                 pen.coords = (command.name === "L" || command.name === "M") ? [args[0], args[1]] : [pen.coords[0] + args[0], pen.coords[1] + args[1]];
                 command.name === "L" || command.name === "l" ? draw(pen, relArgs, true, output) : draw(pen, relArgs, false, output);
                 break;
-            case "H": case "h": case "V": case "v":
+            case "H": case "h": case "V": case "v": //
                 isHorizontal = (command.name == "H" || command.name == "h");
                 isUpperCase = (command.name == "H" || command.name == "V");
                 relArg = isUpperCase ? args[0] - (isHorizontal ? pen.coords[0] : pen.coords[1]) : args[0];
@@ -382,7 +404,6 @@ function main(path) {
                         prevControlPoint = [pen.coords[0] + args[0], pen.coords[1] + args[1]];
                         break;
                     case "T":
-                        console.log("kys")
                         reflection = prevControlPoint ? [2 * pen.coords[0] - prevControlPoint[0], 2 * pen.coords[1] - prevControlPoint[1]] : pen.coords;
                         curve = quadBezier(pen.coords, reflection, [args[0], args[1]]);
                         prevControlPoint = reflection;
@@ -394,7 +415,7 @@ function main(path) {
                         break;
                 }
 
-                for (let i = 0; i < curve.length; i++) {
+                for (let i = 0; i < curve.length; i++) { //loops through the points and draws them
                     let xy = curve[i];
                     let xyNew = xy.map(function(dim, index) {
                         return dim - pen.coords[index];
@@ -404,10 +425,10 @@ function main(path) {
                 }
                 break;
             case "Z": case "z":
-                draw(pen, [0, 0], true, output);
+                draw(pen, [0, 0], true, output); //returns to 0, 0
         }
     });
     return formatted(output, angle);
 }
 
-console.log(main("M 10 100 Q 25 10 116 18 T 208 207 t 320 100 T 390 100"))
+console.log(main("svg path"))
