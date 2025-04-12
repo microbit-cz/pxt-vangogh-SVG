@@ -1,3 +1,18 @@
+# Repository Archived
+This repository has been archived and is no longer maintained.
+
+The official successor to this project with enhanced functionality and Windows 11 support can be found at:
+
+[https://github.com/microbit-cz/VanGogh-Painter-web](https://github.com/microbit-cz/VanGogh-Painter-web)
+
+The new VanGogh Painter web application offers improved features including:
+- Full Windows 11 compatibility
+- Enhanced SVG editing capabilities
+- Better micro:bit connectivity
+- Improved canvas scaling and visualization tools
+
+We recommend migrating to the new repository for continued development and support.
+
 # VanGogh SVG
 Vektorová tiskárna - robot jezdící podle příkazů želví grafiky dodaných přes Bluetooth ovládácí webový panel.
 Příkazy jsou vytvořeny ze zadaného SVG `<path>` commandu - jeho parametru `d`
